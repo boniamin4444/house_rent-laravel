@@ -1,0 +1,207 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Message;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class MessageController extends Controller
+{
+    // মেসেজ পাঠানোর ফাংশন
+    public function sendMessage(Request $request)
+    {
+        // ইনপুট ভ্যালিডেশন
+        $request->validate([
+            'receiver_id' => 'required|exists:users,id', // রিসিভারের ইউজার আইডি চেক
+            'message' => 'required|string', // মেসেজের কন্টেন্ট চেক
+            'parent_id' => 'nullable|exists:messages,id', // parent_id চেক (যদি রেপ্লাই হয়)
+        ]);
+    
+        // মেসেজ ইনসার্ট করা
+        Message::create([
+            'sender_id' => auth()->id(), // লগইন করা ইউজারের ID
+            'receiver_id' => $request->receiver_id, // রিসিভারের ID
+            'message' => $request->message, // মেসেজ কন্টেন্ট
+            'parent_id' => $request->parent_id, // রেপ্লাইয়ের জন্য parent_id
+        ]);
+    
+        // সফলভাবে মেসেজ পাঠানোর পর মেসেজ পেজে রিডিরেক্ট করা
+        return redirect()->route('messages.index', ['receiver_id' => $request->receiver_id]); // রিসিভারের ID সাথে রেখে রিডিরেক্ট
+    }
+    
+
+    // মেসেজের লিস্ট এবং মেসেজ পাঠানোর পেজের জন্য
+    // Controller method (MessageController.php)
+public function index(Request $request)
+{
+    // receiver_id URL প্যারামিটার থেকে নেওয়া
+    $receiver_id = $request->receiver_id;
+
+    // আগের মেসেজের ইতিহাস দেখানো
+    $messages = Message::where(function ($query) {
+            $query->where('sender_id', auth()->id())
+                  ->orWhere('receiver_id', auth()->id());
+        })
+        ->orderBy('created_at', 'desc') // মেসেজ সঠিক অর্ডারে দেখানোর জন্য
+        ->get();
+
+    // মেসেজ পাঠানো ও প্রাপ্ত ইউজারদের লিস্ট দেখানো
+    $users = Message::where('sender_id', auth()->id())
+                    ->orWhere('receiver_id', auth()->id())
+                    ->get()
+                    ->pluck('sender_id')
+                    ->merge(Message::where('receiver_id', auth()->id())
+                    ->pluck('receiver_id'))
+                    ->unique()
+                    ->filter(function($id) {
+                        return $id != auth()->id(); // নিজের ID বাদ দেওয়া
+                    })
+                    ->map(function($id) {
+                        return User::find($id); // ইউজার ইনফরমেশন নিয়ে আসা
+                    });
+
+    // মেসেজ পেজে রেন্ডার করা
+    return view('allpage.messagemodal', compact('messages', 'users', 'receiver_id'));
+}
+
+}
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message System</title>
+
+    <!-- Bootstrap CSS CDN -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Optional: Include your custom styles if needed -->
+    <style>
+        .message-box {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .user-messages {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+
+        .messages-for-user {
+            display: none;
+        }
+
+        /* Adjust the layout of message container and list */
+        .message-container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .message-list {
+            width: 30%;
+            padding-right: 20px;
+        }
+
+        .message-detail {
+            width: 65%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <!-- Create a message container with grid layout -->
+        <div class="message-container">
+            <!-- আগের মেসেজ করা ইউজারের লিস্ট -->
+            <div class="message-list">
+                <h3 class="text-center mb-4">Users you've messaged:</h3>
+                <div class="list-group">
+                    @foreach($users as $user)
+                        <a href="javascript:void(0)" class="list-group-item list-group-item-action user-message-toggle" data-user-id="{{ $user->id }}">
+                            {{ $user->name }}
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- মেসেজের ইতিহাস - Initially hidden, shown after user click -->
+            <div class="message-detail" id="messages-container">
+                @foreach($users as $user)
+                    <div class="messages-for-user" id="messages-{{$user->id}}" style="{{ $receiver_id == $user->id ? 'display: block;' : 'display: none;' }}">
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">Messages with {{ $user->name }}</h5>
+                                <!-- show messages for specific user -->
+                                <div class="user-messages">
+                                    @foreach($messages as $message)
+                                        @if($message->sender_id == $user->id || $message->receiver_id == $user->id)
+                                            <div class="message-box mb-2">
+                                                <strong>{{ $message->sender->name }}</strong> -> <strong>{{ $message->receiver->name }}</strong>: 
+                                                <p class="mb-0">{{ $message->message }}</p>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- মেসেজ পাঠানোর ফর্ম -->
+                        <form action="{{ route('messages.send') }}" method="POST" class="mb-4">
+                            @csrf
+                            <input type="hidden" name="receiver_id" value="{{ $user->id }}">
+
+                            <div class="form-group">
+                                <label for="message">Message</label>
+                                <textarea name="message" id="message" class="form-control" required placeholder="Type your message..."></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary mt-2">Send Message</button>
+                        </form>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies CDN -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.0/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- JavaScript to toggle the message container -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get all the user toggle links
+            const userMessageToggles = document.querySelectorAll('.user-message-toggle');
+
+            // Show the selected user's message container
+            userMessageToggles.forEach(function(toggle) {
+                toggle.addEventListener('click', function() {
+                    const userId = toggle.getAttribute('data-user-id');
+                    const messageContainer = document.getElementById('messages-' + userId);
+
+                    // Hide all message containers
+                    const allMessageContainers = document.querySelectorAll('.messages-for-user');
+                    allMessageContainers.forEach(function(container) {
+                        container.style.display = 'none';
+                    });
+
+                    // Show the selected user's message container
+                    if (messageContainer) {
+                        messageContainer.style.display = messageContainer.style.display === 'none' ? 'block' : 'block';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
