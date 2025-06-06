@@ -9,45 +9,38 @@ use Illuminate\Support\Facades\Auth;
 
 class MessageController extends Controller
 {
-    // মেসেজ পাঠানোর ফাংশন
     public function sendMessage(Request $request)
     {
-        // ইনপুট ভ্যালিডেশন
+
         $request->validate([
-            'receiver_id' => 'required|exists:users,id', // রিসিভারের ইউজার আইডি চেক
-            'message' => 'required|string', // মেসেজের কন্টেন্ট চেক
-            'parent_id' => 'nullable|exists:messages,id', // parent_id চেক (যদি রেপ্লাই হয়)
+            'receiver_id' => 'required|exists:users,id',
+            'message' => 'required|string', 
+            'parent_id' => 'nullable|exists:messages,id', 
         ]);
     
-        // মেসেজ ইনসার্ট করা
+
         Message::create([
-            'sender_id' => auth()->id(), // লগইন করা ইউজারের ID
-            'receiver_id' => $request->receiver_id, // রিসিভারের ID
-            'message' => $request->message, // মেসেজ কন্টেন্ট
-            'parent_id' => $request->parent_id, // রেপ্লাইয়ের জন্য parent_id
+            'sender_id' => auth()->id(), 
+            'receiver_id' => $request->receiver_id,
+            'message' => $request->message, 
+            'parent_id' => $request->parent_id, 
         ]);
     
-        // সফলভাবে মেসেজ পাঠানোর পর মেসেজ পেজে রিডিরেক্ট করা
-        return redirect()->route('messages.index', ['receiver_id' => $request->receiver_id]); // রিসিভারের ID সাথে রেখে রিডিরেক্ট
+        return redirect()->route('messages.index', ['receiver_id' => $request->receiver_id]);
     }
     
 
-    // মেসেজের লিস্ট এবং মেসেজ পাঠানোর পেজের জন্য
-    // Controller method (MessageController.php)
-public function index(Request $request)
-{
-    // receiver_id URL প্যারামিটার থেকে নেওয়া
-    $receiver_id = $request->receiver_id;
+ public function index(Request $request)
+   {
 
-    // আগের মেসেজের ইতিহাস দেখানো
+    $receiver_id = $request->receiver_id;
     $messages = Message::where(function ($query) {
             $query->where('sender_id', auth()->id())
                   ->orWhere('receiver_id', auth()->id());
         })
-        ->orderBy('created_at', 'desc') // মেসেজ সঠিক অর্ডারে দেখানোর জন্য
+        ->orderBy('created_at', 'desc') 
         ->get();
 
-    // মেসেজ পাঠানো ও প্রাপ্ত ইউজারদের লিস্ট দেখানো
     $users = Message::where('sender_id', auth()->id())
                     ->orWhere('receiver_id', auth()->id())
                     ->get()
@@ -56,13 +49,11 @@ public function index(Request $request)
                     ->pluck('receiver_id'))
                     ->unique()
                     ->filter(function($id) {
-                        return $id != auth()->id(); // নিজের ID বাদ দেওয়া
+                        return $id != auth()->id();
                     })
                     ->map(function($id) {
-                        return User::find($id); // ইউজার ইনফরমেশন নিয়ে আসা
+                        return User::find($id);
                     });
-
-    // মেসেজ পেজে রেন্ডার করা
     return view('allpage.messagemodal', compact('messages', 'users', 'receiver_id'));
 }
 
