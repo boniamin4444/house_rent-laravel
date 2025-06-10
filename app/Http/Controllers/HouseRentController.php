@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\HouseRent;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class HouseRentController extends Controller
 {
@@ -41,7 +42,7 @@ class HouseRentController extends Controller
     $validated['gallery'] = $galleryPaths;
 
     // Add the authenticated user's ID to the data
-    $validated['user_id'] = auth()->id(); // Get the currently authenticated user's ID
+    $validated['user_id'] = Auth::id(); // Get the currently authenticated user's ID
 
     // Store the data in the database
     HouseRent::create($validated);

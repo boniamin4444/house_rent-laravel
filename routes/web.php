@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\HouseRentController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\LikeController;
 use Illuminate\Support\Facades\Route;
 
 // Default welcome page route
@@ -35,6 +36,8 @@ Route::middleware('auth')->group(function() {
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
     Route::post('/messages/send', [MessageController::class, 'sendMessage'])->name('messages.send');;
 });
+
+Route::middleware('auth')->post('/likes/toggle', [LikeController::class, 'toggle']);
 
 // Include Laravel authentication routes
 require __DIR__.'/auth.php';
