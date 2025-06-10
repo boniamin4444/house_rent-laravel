@@ -59,8 +59,15 @@
         @endauth
 
         <div class="row mt-4"> {{-- Added mt-4 for spacing --}}
+                
             @foreach ($houseRents as $houseRent)
-                <div class="col-md-12 mb-4">
+                <div class="col-md-3 mb-4">
+                    <h2 class="text-center">Available House Rents</h2>
+
+                </div>
+
+
+                <div class="col-md-6 mb-4">
                     <div class="card">
                         <div class="card-body">
                             {{-- Loop through gallery images and display them --}}
@@ -104,13 +111,12 @@
                             <div class="row mt-3">
                                 @auth
                                     <div class="col-4">
-                                        {{-- !!! IMPORTANT: data-house-rent-id is correct !!! --}}
-                                        {{-- Determine initial button state based on whether the current user has liked it --}}
                                         <button class="btn w-100 like-btn {{ $houseRent->likes->contains('user_id', Auth::id()) ? 'btn-secondary' : 'btn-success' }}"
                                             data-house-rent-id="{{ $houseRent->id }}">
                                             {{ $houseRent->likes->contains('user_id', Auth::id()) ? 'Liked' : 'Like' }}
                                         </button>
                                     </div>
+
                                     <div class="col-4">
                                         <button class="btn btn-warning w-100">Comment</button>
                                     </div>
@@ -129,6 +135,12 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+                
+                <div class="col-md-3 mb-4">
+                    <h2 class="text-center">Available House Rents</h2>
+
                 </div>
             @endforeach
         </div>
