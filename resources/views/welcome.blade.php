@@ -2,6 +2,7 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,6 +16,7 @@
     {{-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"> --}}
     {{-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> --}}
 </head>
+
 <body>
     @include('allpage.postmodal') {{-- Ensure this path is correct for your modal --}}
 
@@ -58,92 +60,118 @@
             {{-- Guest content or message --}}
         @endauth
 
-        <div class="row mt-4"> {{-- Added mt-4 for spacing --}}
-                
-            @foreach ($houseRents as $houseRent)
-                <div class="col-md-3 mb-4">
-                    <h2 class="text-center">Available House Rents</h2>
+        <div class="d-flex" style="height: 100vh; overflow: hidden;">
+            {{-- Left Fixed Sidebar --}}
+            <div class="p-3 bg-light" style="width: 20%; height: 100vh; overflow-y: auto; position: sticky; top: 0;">
+                <h2 class="text-center">Available House Rents</h2>
+                <p>লোকেশন অনুযায়ী খোঁজুন (Search by Location)</p>
+                <p>ক্যাটাগরি (Category)</p>
+                <ul>
+                    <li>বাসা</li>
+                    <li>ফ্ল্যাট</li>
+                    <li>অফিস</li>
+                    <li>সাবলেট</li>
+                </ul>
+                <p>সাম্প্রতিক যোগ করা বিজ্ঞাপন (Recently Added Ads)</p>
+            </div>
 
-                </div>
+            {{-- Middle Scrollable Content (8-column width ~ 66.66%) --}}
+            <div class="px-3"
+                style="
+        width: 66.66%;
+        height: 100vh;
+        overflow-y: scroll;
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;     /* Firefox */
+    ">
+                <style>
+                    /* Hide scrollbar for Chrome, Safari, and Opera */
+                    div[style*='overflow-y: scroll']::-webkit-scrollbar {
+                        display: none;
+                    }
+                </style>
 
-
-                <div class="col-md-6 mb-4">
-                    <div class="card">
-                        <div class="card-body">
-                            {{-- Loop through gallery images and display them --}}
-                            <div class="row">
-                                @foreach ($houseRent->gallery as $index => $image)
-                                    @if ($index < 4)
-                                        {{-- Show the first 4 images --}}
-                                        <div class="col-4 mb-2">
-                                            <img src="{{ asset('storage/' . $image) }}" class="img-fluid"
-                                                alt="House Image" data-bs-toggle="modal"
-                                                data-bs-target="#imageModal{{ $houseRent->id }}">
-                                        </div>
-                                    @endif
-                                @endforeach
-                            </div>
-
-                            <h5 class="card-title">{{ $houseRent->district }}, {{ $houseRent->police_station }}</h5>
-                            <p class="card-text">Price: ৳{{ number_format($houseRent->price, 2) }}</p>
-                            <p class="card-text">Square Feet: {{ $houseRent->square_feet }} sq ft</p>
-                            <p class="card-text">Bedrooms: {{ $houseRent->bedrooms }}</p>
-
-                            {{-- Description (Show 100 words and show more on click) --}}
-                            <p class="card-text" id="shortDescription{{ $houseRent->id }}">
-                                {{ Str::limit($houseRent->description, 100) }}
-                                @if (strlen($houseRent->description) > 100)
-                                    <span data-bs-toggle="collapse" data-bs-target="#description{{ $houseRent->id }}"
-                                        aria-expanded="false" aria-controls="description{{ $houseRent->id }}"
-                                        class="text-primary show-more-less" style="cursor: pointer;">+ Show More</span>
-                                @endif
-                            </p>
-
-                            {{-- Full Description for Collapsing --}}
-                            <div class="collapse" id="description{{ $houseRent->id }}">
-                                <p class="card-text mt-2">{{ $houseRent->description }}</p>
-                                <span data-bs-toggle="collapse" data-bs-target="#description{{ $houseRent->id }}"
-                                    aria-expanded="true" aria-controls="description{{ $houseRent->id }}"
-                                    class="text-primary show-more-less" style="cursor: pointer;">- Show Less</span>
-                            </div>
-
-                            {{-- Like, Comment, and Message Buttons in 4 Columns --}}
-                            <div class="row mt-3">
-                                @auth
-                                    <div class="col-4">
-                                        <button class="btn w-100 like-btn {{ $houseRent->likes->contains('user_id', Auth::id()) ? 'btn-secondary' : 'btn-success' }}"
-                                            data-house-rent-id="{{ $houseRent->id }}">
-                                            {{ $houseRent->likes->contains('user_id', Auth::id()) ? 'Liked' : 'Like' }}
-                                        </button>
+                <div class="row mt-4">
+                    @foreach ($houseRents as $houseRent)
+                        <div class="col-md-12 mb-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    {{-- Gallery --}}
+                                    <div class="row">
+                                        @foreach ($houseRent->gallery as $index => $image)
+                                            @if ($index < 4)
+                                                <div class="col-4 mb-2">
+                                                    <img src="{{ asset('storage/' . $image) }}" class="img-fluid"
+                                                        alt="House Image" data-bs-toggle="modal"
+                                                        data-bs-target="#imageModal{{ $houseRent->id }}">
+                                                </div>
+                                            @endif
+                                        @endforeach
                                     </div>
 
-                                    <div class="col-4">
-                                        <button class="btn btn-warning w-100">Comment</button>
-                                    </div>
-                                    <div class="col-4">
-                                        <a class="btn btn-primary w-100"
-                                            href="{{ route('messages.index', ['receiver_id' => $houseRent->user_id]) }}">Message</a>
-                                    </div>
-                                @endauth
+                                    {{-- Details --}}
+                                    <h5 class="card-title">{{ $houseRent->district }}, {{ $houseRent->police_station }}</h5>
+                                    <p class="card-text">Price: ৳{{ number_format($houseRent->price, 2) }}</p>
+                                    <p class="card-text">Square Feet: {{ $houseRent->square_feet }} sq ft</p>
+                                    <p class="card-text">Bedrooms: {{ $houseRent->bedrooms }}</p>
 
-                                @guest
-                                    {{-- Optional: You can show a message to guests, if desired --}}
-                                    <div class="col-12 text-center">
-                                        <p class="text-muted">Please log in to like, comment, or send a message.</p>
+                                    {{-- Description --}}
+                                    <p class="card-text" id="shortDescription{{ $houseRent->id }}">
+                                        {{ Str::limit($houseRent->description, 100) }}
+                                        @if (strlen($houseRent->description) > 100)
+                                            <span data-bs-toggle="collapse"
+                                                data-bs-target="#description{{ $houseRent->id }}" aria-expanded="false"
+                                                aria-controls="description{{ $houseRent->id }}"
+                                                class="text-primary show-more-less" style="cursor: pointer;">+ Show
+                                                More</span>
+                                        @endif
+                                    </p>
+                                    <div class="collapse" id="description{{ $houseRent->id }}">
+                                        <p class="card-text mt-2">{{ $houseRent->description }}</p>
+                                        <span data-bs-toggle="collapse" data-bs-target="#description{{ $houseRent->id }}"
+                                            aria-expanded="true" aria-controls="description{{ $houseRent->id }}"
+                                            class="text-primary show-more-less" style="cursor: pointer;">- Show Less</span>
                                     </div>
-                                @endguest
+
+                                    {{-- Buttons --}}
+                                    <div class="row mt-3">
+                                        @auth
+                                            <div class="col-4">
+                                                <button
+                                                    class="btn w-100 like-btn {{ $houseRent->likes->contains('user_id', Auth::id()) ? 'btn-secondary' : 'btn-success' }}"
+                                                    data-house-rent-id="{{ $houseRent->id }}">
+                                                    {{ $houseRent->likes->contains('user_id', Auth::id()) ? 'Liked' : 'Like' }}
+                                                </button>
+                                            </div>
+                                            <div class="col-4">
+                                                <button class="btn btn-warning w-100">Comment</button>
+                                            </div>
+                                            <div class="col-4">
+                                                <a class="btn btn-primary w-100"
+                                                    href="{{ route('messages.index', ['receiver_id' => $houseRent->user_id]) }}">Message</a>
+                                            </div>
+                                        @endauth
+
+                                        @guest
+                                            <div class="col-12 text-center">
+                                                <p class="text-muted">Please log in to like, comment, or send a message.</p>
+                                            </div>
+                                        @endguest
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    @endforeach
                 </div>
+            </div>
 
-                
-                <div class="col-md-3 mb-4">
-                    <h2 class="text-center">Available House Rents</h2>
-
-                </div>
-            @endforeach
+            {{-- Right Fixed Sidebar --}}
+            <div class="p-3 bg-light" style="width: 20%; height: 100vh; overflow-y: auto; position: sticky; top: 0;">
+                <h2 class="text-center">Available House Rents</h2>
+                {{-- Add more sidebar widgets or ads --}}
+            </div>
         </div>
+
 
         {{-- Modals for image gallery --}}
         @foreach ($houseRents as $houseRent)
@@ -206,7 +234,7 @@
                             _token: csrfToken // Include CSRF token
                         },
                         success: function(response) {
-                           
+
                             // Toggle button UI
                             if (response.message === 'Liked') {
                                 button.text('Liked')
@@ -224,12 +252,15 @@
                                 // Optional: redirect to login page
                                 // window.location.href = '/login';
                             } else if (xhr.status === 419) { // CSRF token mismatch/session expired
-                                alert('Your session has expired. Please refresh the page and try again.');
+                                alert(
+                                    'Your session has expired. Please refresh the page and try again.'
+                                    );
                                 // Optional: reload page to get a new CSRF token
                                 // window.location.reload();
                             } else {
                                 alert('Something went wrong. Please try again.');
-                                console.error('AJAX Error:', xhr.status, xhr.responseText); // Log the error for debugging
+                                console.error('AJAX Error:', xhr.status, xhr
+                                    .responseText); // Log the error for debugging
                             }
                         }
                     });
@@ -238,4 +269,5 @@
         </script>
     @endsection
 </body>
+
 </html>
