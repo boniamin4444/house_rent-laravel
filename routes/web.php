@@ -31,10 +31,10 @@ Route::middleware('auth')->group(function () {
 });
 Route::get('/', [HouseRentController::class, 'index']);
 
-
-Route::middleware('auth')->group(function() {
+Route::middleware('auth')->group(function () {
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
-    Route::post('/messages/send', [MessageController::class, 'sendMessage'])->name('messages.send');;
+    Route::post('/messages/send', [MessageController::class, 'sendMessage'])->name('messages.send');
+    Route::get('/messages/fetch', [MessageController::class, 'fetchMessages'])->name('messages.fetch');
 });
 
 Route::middleware('auth')->post('/likes/toggle', [LikeController::class, 'toggle']);
