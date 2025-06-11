@@ -12,106 +12,111 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <style>
-        /* Base Font Family */
-        body {
-            font-family: 'Inter', sans-serif;
-        }
+       /* Use desktop layout in all devices */
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+}
 
-        /* Container for larger screens */
-        @media (min-width: 992px) { /* Bootstrap's 'lg' breakpoint for medium devices */
-            .container-wrapper {
-                max-width: 960px;
-                margin-left: auto;
-                margin-right: auto;
-            }
-        }
+/* Wrapper container */
+.container-wrapper {
+    display: flex !important;
+    flex-direction: row !important;
+    height: 100vh !important;
+    max-width: 960px !important;
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: 0 !important;  /* left side no padding */
+    padding-right: 1rem !important;  /* right side padding okay */
+    overflow: hidden;
+}
 
-        /* Hide scrollbar for chat messages */
-        .chat-messages::-webkit-scrollbar {
-            display: none; /* For Chrome, Safari, Opera */
-        }
-        .chat-messages {
-            -ms-overflow-style: none; /* For IE and Edge */
-            scrollbar-width: none; /* For Firefox */
-            scroll-behavior: smooth; /* Smooth scrolling for new messages */
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            height: calc(100vh - 180px); /* Adjust height based on header and input */
-            padding-bottom: 1rem;
-        }
+/* Sidebar always 25% */
+.sidebar {
+    width: 35% !important;
+    max-height: 100vh !important;
+    border-right: 1px solid #e2e8f0;
+    border-bottom: none !important;
+    overflow-y: auto;
+}
 
-        /* Styling for sent messages */
-        .message-bubble.sent {
-            background-color: #e2e8f0; /* Light gray background */
-            align-self: flex-end; /* Align to the right */
-            margin-left: auto; /* Push to the right */
-        }
+/* Chat window always 75% */
+.chat-window {
+    width: 75% !important;
+    height: 100vh !important;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
 
-        /* Styling for received messages */
-        .message-bubble.received {
-            background-color: #d1fae5; /* Light green background */
-            align-self: flex-start; /* Align to the left */
-            margin-right: auto; /* Push to the left */
-        }
+/* Chat header stays at top */
+.chat-header {
+    flex-shrink: 0;
+}
 
-        /* Custom border-radius for message bubbles */
-        .rounded-3xl {
-            border-radius: 1.5rem !important; /* 24px */
-        }
+/* Chat message area scrollable */
+.chat-messages {
+    flex-grow: 1;
+    overflow-y: auto !important;
+    height: calc(100vh - 180px) !important;
+    padding-bottom: 1rem;
+    -ms-overflow-style: none;  /* IE */
+    scrollbar-width: none;     /* Firefox */
+}
 
-        /* Custom border-radius for user list items */
-        .rounded-xl {
-            border-radius: 0.75rem !important; /* 12px */
-        }
+/* Scrollbar hidden visually */
+.chat-messages::-webkit-scrollbar,
+.sidebar::-webkit-scrollbar,
+.chat-window::-webkit-scrollbar {
+    display: none !important;
+}
 
-        /* User list item active state */
-        .user-list-item.active {
-            background-color: #4f46e5; /* indigo-600 */
-            color: #ffffff;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
-        }
-        .user-list-item.active:hover {
-            background-color: #4338ca; /* Darker indigo on hover */
-        }
-        .user-list-item {
-            background-color: #f3f4f6; /* gray-100 */
-            color: #4b5563; /* gray-700 */
-        }
-        .user-list-item:hover {
-            background-color: #e5e7eb; /* gray-200 */
-        }
-        .user-list-item .user-avatar {
-            background-color: #a5b4fc; /* indigo-200 */
-            color: #3730a3; /* indigo-800 */
-        }
-         .chat-header .user-avatar {
-            background-color: #93c5fd; /* indigo-300 */
-            color: #312e81; /* indigo-900 */
-        }
+/* Message bubbles */
+.message-bubble.sent {
+    background-color: #e2e8f0;
+    align-self: flex-end;
+    margin-left: auto;
+}
+.message-bubble.received {
+    background-color: #d1fae5;
+    align-self: flex-start;
+    margin-right: auto;
+}
+.rounded-3xl {
+    border-radius: 1.5rem !important;
+}
+.rounded-xl {
+    border-radius: 0.75rem !important;
+}
 
-        /* Responsive adjustments for smaller screens */
-        @media (max-width: 991.98px) { /* Below Bootstrap's 'lg' breakpoint */
-            .container-wrapper {
-                flex-direction: column;
-                height: auto; /* Allow content to dictate height */
-            }
+/* User list */
+.user-list-item.active {
+    background-color: #4f46e5;
+    color: #ffffff;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+.user-list-item.active:hover {
+    background-color: #4338ca;
+}
+.user-list-item {
+    background-color: #f3f4f6;
+    color: #4b5563;
+}
+.user-list-item:hover {
+    background-color: #e5e7eb;
+}
+.user-list-item .user-avatar {
+    background-color: #a5b4fc;
+    color: #3730a3;
+}
+.chat-header .user-avatar {
+    background-color: #93c5fd;
+    color: #312e81;
+}
 
-            .sidebar {
-                width: 100%;
-                border-right: none;
-                border-bottom: 1px solid #e2e8f0; /* gray-200 */
-                max-height: 40vh; /* Limit sidebar height on small screens */
-            }
-
-            .chat-window {
-                height: 100vh; /* Full viewport height for chat area */
-            }
-
-            .chat-messages {
-                height: calc(100vh - 250px); /* Adjust height for header and input on small screens */
-            }
-        }
     </style>
 </head>
 <body class="bg-light antialiased">
